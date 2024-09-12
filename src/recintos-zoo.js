@@ -33,32 +33,89 @@ class RecintosZoo {
     ];
   }
 
-  analisaRecintos(animal, quantidade) {
-    if (quantidade < 1 || Math.floor(quantidade) !== quantidade) {
-        return { erro: "Quantidade inválida" };
-    }
+  // analisaRecintos(animal, quantidade) {
+  //   // Conferir se a quantidade de animais é valida, maior que zero e inteiro
+  //   if (quantidade < 1 || Math.floor(quantidade) !== quantidade) {
+  //       return { erro: "Quantidade inválida" };
+  //   }
+    
+  //   //obtem as informações do animal passado de acordo com this.animais 
+  //   const infoAnimal = this.animais.find(
+  //     (a) => a.especie.toLowerCase() === animal.toLowerCase()
+  //   );
+  //   if (!infoAnimal) {
+  //       return { erro: "Animal inválido" };
+  //   }
 
+  //   //
+  //   const recintosCompativeis = this.recintos.filter(
+  //     (recinto) =>
+  //       //para cada objeto recintos, será passado a função verificaBioma
+  //       //e também verifica se o espaço livre() no recinto é maior ou igual ao necessário de acordo com o animal e a quantidade a serem adicionados
+
+  //       this.verificaBioma(animal, recinto.bioma) &&
+  //       recinto.tamanho - this.calculaEspacoOcupado(recinto) >=
+  //         infoAnimal.tamanho * quantidade
+  //   );
+  //   // como recintos compativeis irá retonar um array, devido ao filter, verifica-se o tamanho desse array
+  //   if (recintosCompativeis.length > 0) {
+  //     //map itera em cada recintosCompativeis "r" e aplica a função fornecida a cada elemento, retornando uma nova lista onde cada elemento é a string formatada.
+  //     const recintosViaveis = recintosCompativeis.map((r) => {
+  //       //faz o calculo do espaco
+  //       const espacoOcupado =
+  //         this.calculaEspacoOcupado(r) + infoAnimal.tamanho * quantidade;
+  //       const espacoLivre = r.tamanho - espacoOcupado;
+  //       return `Recinto ${r.numero} (espaço livre: ${espacoLivre} total: ${r.tamanho})`;
+  //     });
+  //     //retorna um objeto que contém a lista de recintos em string formatada
+  //     return { recintosViaveis };
+  //   } else {
+  //       return { erro: `Não há recinto viável` };
+  //   }
+  // }
+
+  analisaRecintos(animal, quantidade) {
+    // Conferir se a quantidade de animais é valida, maior que zero e inteiro
+    if (quantidade < 1 || Math.floor(quantidade) !== quantidade) {
+      return { erro: "Quantidade inválida" };
+    }
+  
+    //obtem as informações do animal passado de acordo com this.animais 
     const infoAnimal = this.animais.find(
       (a) => a.especie.toLowerCase() === animal.toLowerCase()
     );
     if (!infoAnimal) {
-        return { erro: "Animal inválido" };
-    }
-    //
-    const recintosCompativeis = this.recintos.filter(
-      (recinto) =>
-        //para cada objeto recintos, será passado a função verificaBioma
-        //e também verifica se o espaço livre() no recinto é maior ou igual ao necessário de acordo com o animal e a quantidade a serem adicionados
-
-        this.verificaBioma(animal, recinto.bioma) &&
+      return { erro: "Animal inválido" };
+    };
+    //Por usar o filter, recintosCompativeis irá verificar os 5 disponíveis e armazenar
+    const recintosCompativeis = this.recintos.filter((recinto) => {
+      //Confere se o bioma do recinto é compatível pela função verificaBioma
+      const biomaCompativel = this.verificaBioma(animal, recinto.bioma);
+      //Confere se há espaço disponível para a quantidade desejada
+      const espacoSuficiente =
         recinto.tamanho - this.calculaEspacoOcupado(recinto) >=
-          infoAnimal.tamanho * quantidade
-    );
+        infoAnimal.tamanho * quantidade;
+  
+      //Verifica se já existe um carnívoro diferente no recinto
+      const recintoComCarnivoro = recinto.animais.some((a) =>
+        this.verificaCarnivoro(a.especie)
+      );
+      if (recintoComCarnivoro) {
+        const mesmaEspecie = recinto.animais.every(
+          (a) => a.especie.toLowerCase() === animal.toLowerCase()
+        );
+        if (!mesmaEspecie) {
+          return false;
+        };
+      };
+      // Retorna true se todas as condições forem satisfeitas
+      return biomaCompativel && espacoSuficiente;
+    });
+
     // como recintos compativeis irá retonar um array, devido ao filter, verifica-se o tamanho desse array
     if (recintosCompativeis.length > 0) {
       //map itera em cada recintosCompativeis "r" e aplica a função fornecida a cada elemento, retornando uma nova lista onde cada elemento é a string formatada.
       const recintosViaveis = recintosCompativeis.map((r) => {
-        //faz o calculo do espaco
         const espacoOcupado =
           this.calculaEspacoOcupado(r) + infoAnimal.tamanho * quantidade;
         const espacoLivre = r.tamanho - espacoOcupado;
@@ -67,9 +124,10 @@ class RecintosZoo {
       //retorna um objeto que contém a lista de recintos em string formatada
       return { recintosViaveis };
     } else {
-        return { erro: `Não há recinto viável` };
+      return { erro: `Não há recinto viável` };
     }
-  }
+  }  
+
 
   //Verifica se o bioma do recinto é compatível com o bioma do animal
   verificaBioma(animal, bioma) {
